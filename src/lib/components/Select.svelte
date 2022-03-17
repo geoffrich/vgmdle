@@ -30,6 +30,7 @@
 		max-width: 30rem;
 		color: var(--text-1);
 		--inputColor: var(--text-1);
+		--inputFontSize: var(--size-3);
 
 		--background: var(--surface-2);
 		--listBackground: var(--surface-2);
