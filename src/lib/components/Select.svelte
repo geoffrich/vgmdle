@@ -18,11 +18,32 @@
 	function handleClear() {
 		value = undefined;
 	}
+
+	let filterText = '';
+	let selectItems = [];
+	let hideEmptyState = false;
+
+	// don't show options until the user starts typing
+	$: if (filterText === '') {
+		selectItems = [];
+		hideEmptyState = true;
+	} else {
+		selectItems = items;
+		hideEmptyState = false;
+	}
 </script>
 
 <div>
 	<label for={id}>{label}</label>
-	<Select {id} {value} {items} on:select={handleSelect} on:clear={handleClear} />
+	<Select
+		{hideEmptyState}
+		bind:filterText
+		{id}
+		{value}
+		items={selectItems}
+		on:select={handleSelect}
+		on:clear={handleClear}
+	/>
 </div>
 
 <style>
