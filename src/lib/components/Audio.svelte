@@ -9,7 +9,8 @@
 	const durations = [1, 2, 4, 7, 11, 16];
 
 	let currentTime = 0;
-	let duration;
+	let duration: number;
+	let state: 'loading' | 'loaded' | 'error' = 'loading';
 
 	let audio: HTMLAudioElement;
 
@@ -23,10 +24,6 @@
 
 	$: progressMax = isGuessing ? durations[durations.length - 1] : duration;
 
-	function skip() {
-		dispatch('skip');
-	}
-
 	function handlePlay() {
 		if (audio.paused) {
 			audio.play();
@@ -34,19 +31,39 @@
 			audio.pause();
 		}
 	}
+
+	function detectState(node: HTMLAudioElement) {
+		if (node.duration) state = 'loaded';
+		else if (node.error) state = 'error';
+	}
 </script>
 
-<audio bind:this={audio} bind:currentTime {src} bind:duration volume="0.5" />
+<audio
+	on:canplay={() => (state = 'loaded')}
+	on:error={() => (state = 'error')}
+	bind:this={audio}
+	use:detectState
+	bind:currentTime
+	{src}
+	bind:duration
+	volume="0.5"
+/>
 
-<div>
-	<button on:click={handlePlay}
-		>{#if audio && !audio.paused}Pause{:else}Play{/if}</button
-	>
-	{#if isGuessing}
-		<button on:click={skip}
-			>Skip {#if skipAmount}(+{skipAmount} s){/if}</button
+{#if state === 'loaded'}
+	<div>
+		<button on:click={handlePlay}
+			>{#if audio && !audio.paused}Pause{:else}Play{/if}</button
 		>
-	{/if}
-</div>
+		{#if isGuessing}
+			<button on:click={() => dispatch('skip')}
+				>Skip {#if skipAmount}(+{skipAmount} s){/if}</button
+			>
+		{/if}
+	</div>
 
-<progress max={progressMax} value={currentTime} />
+	<progress max={progressMax} value={currentTime} />
+{:else if state === 'loading'}
+	<p>Loading audio...</p>
+{:else if state === 'error'}
+	<p>Unable to load audio.</p>
+{/if}
