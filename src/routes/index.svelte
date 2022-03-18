@@ -57,6 +57,10 @@
 	}
 </script>
 
+<svelte:head>
+	<title>VGMdle - the daily video game music guessing game</title>
+</svelte:head>
+
 <h1>VGMdle</h1>
 
 <ul>
