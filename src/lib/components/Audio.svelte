@@ -33,21 +33,37 @@
 	}
 
 	function detectState(node: HTMLAudioElement) {
-		if (node.duration) state = 'loaded';
-		else if (node.error) state = 'error';
+		const setLoaded = () => {
+			state = 'loaded';
+		};
+		const setError = () => {
+			state = 'error';
+		};
+
+		if (node.duration) setLoaded();
+		else if (node.error) setError();
+
+		const listeners: [keyof HTMLMediaElementEventMap, () => void][] = [
+			['canplay', setLoaded],
+			['loadedmetadata', setLoaded], // for Safari
+			['error', setError]
+		];
+
+		listeners.forEach(([eventName, handler]) => {
+			node.addEventListener(eventName, handler);
+		});
+
+		return {
+			destroy: () => {
+				listeners.forEach(([eventName, handler]) => {
+					node.removeEventListener(eventName, handler);
+				});
+			}
+		};
 	}
 </script>
 
-<audio
-	on:canplay={() => (state = 'loaded')}
-	on:error={() => (state = 'error')}
-	bind:this={audio}
-	use:detectState
-	bind:currentTime
-	{src}
-	bind:duration
-	volume="0.5"
-/>
+<audio bind:this={audio} use:detectState bind:currentTime {src} bind:duration volume="0.5" />
 
 {#if state === 'loaded'}
 	<div>
